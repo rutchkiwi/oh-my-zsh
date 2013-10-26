@@ -1,34 +1,37 @@
 #!/bin/zsh
 echo copyshell installed
 copyshell() {
-	echo "zsh home:" $ZSH
-	if [[ ! ARGC -eq 1 ]]; then
-		echo "1 argument required, $# provided";
-		exit 1;
+	if [[ ! ARGC -eq 1 ]] then
+		echo "1 argument required, $# provided"
+		exit 1
+	elif [[ $1 = '-h' || $1 = '--help' ]] then
+		echo "HELP MSG"
+		exit 0
+	else
+		set -e
+		echo We will copy shell settings to $1
+		echo Transfering $ZSH , .zshrc, .gitconfig and this script:
+		cd ~
+		cp .zshrc .zshrc_new
+		cp .gitconfig .gitconfig_new
+		scp -r $ZSH lol/lol.txt .zshrc_new .gitconfig_new copy_shell_conf.sh $1:~/
+		echo "We will now setup the shell via ssh."
+		ssh -t $1 'if [ -f .zshrc ]; then 
+		mv .zshrc .zshrc_old; 
+		echo "An existing .zshrc was found. It was moved to .zshrc_old"
+		fi;
+		mv .zshrc_new .zshrc;
+		if [ -f .gitconfig ]; then 
+		mv .gitconfig .gitconfig_old; 
+		echo "An existing .gitconfig was found. It was moved to .gitconfig_old"
+		fi;
+		mv .gitconfig_new .gitconfig;
+		echo "Changing the default shell to ZSH";
+		chsh -s /bin/zsh'
+		rm .zshrc_new .gitconfig_new
 	fi
-	echo 'Setting up vhoshell shell on ' $1
-	cd ~
-	echo 'Transfering '$ZSH', .zshrc, .gitconfig and this script:'
-	cp .zshrc .zshrc_new
-	cp .gitconfig .gitconfig_new
-	scp -r $ZSH .zshrc_new .gitconfig_new copy_shell_conf.sh $1:~/
-	echo "We will now setup the shell via ssh."
-	ssh -t $1 'if [ -f .zshrc ]; then 
-	mv .zshrc .zshrc_old; 
-	echo "An existing .zshrc was found. It was moved to .zshrc_old"
-	fi;
-	mv .zshrc_new .zshrc;
-	if [ -f .gitconfig ]; then 
-	mv .gitconfig .gitconfig_old; 
-	echo "An existing .gitconfig was found. It was moved to .gitconfig_old"
-	fi;
-	mv .gitconfig_new .gitconfig;
-	echo "Changing the default shell to ZSH";
-	chsh -s /bin/zsh'
-	rm .zshrc_new .gitconfig_new
 }
 
-copyshell fff
 
 # Transfering .oh-my-zsh, .zshrc, .gitconfig and this script:
 # :~/: No such file or directory
